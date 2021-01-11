@@ -96,17 +96,22 @@ module.exports = class VkApi extends EventEmitter {
     call(method, params = {}) {
         return new Promise(async(resolve, reject) => {
             if (!this.accessToken) {
-                console.log('Token is empty');
+                console.error('Token is empty');
                 return;
             }
 
-            var res = await axios.get(this.vkUrl + method, {
-                params: {
-                    v: this.apiVer,
-                    access_token: this.accessToken,
-                    ...params,
-                }
-            });
+            try {
+                var res = await axios.get(this.vkUrl + method, {
+                    params: {
+                        v: this.apiVer,
+                        access_token: this.accessToken,
+                        ...params,
+                    }
+                });
+            } catch (error) {
+                reject(res.error);
+            }
+
             res = res.data;
             if (res.error) {
                 reject(res.error);
