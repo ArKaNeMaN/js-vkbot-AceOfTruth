@@ -15,7 +15,6 @@ module.exports = class VkApi extends EventEmitter {
 
         this.accessToken = token;
         this.on('lp-message_new', event => {
-            //console.log(event);
             var msg = event.object.message;
             if (!msg.payload)
                 return;
@@ -60,10 +59,25 @@ module.exports = class VkApi extends EventEmitter {
         }).then(res => {
             res = res.data;
             this.lpServer.ts = res.ts;
-            if (res.updates)
+            if (res.updates) {
                 for (var i = 0; i < res.updates.length; i++)
                     this.emit('lp-' + res.updates[i].type, res.updates[i]);
-            this.sendLongPoll();
+                this.sendLongPoll();
+            } else if (res.failed) {
+                console.log(res);
+                switch (res.failed) {
+                    case 1:
+                        this.lpServer.ts = res.ts;
+                        break;
+
+                    case 2, 3:
+                        this.startLongPoll();
+                        break;
+
+                    default:
+                        break;
+                }
+            }
         }).catch(reason => {
             console.log(reason);
             this.startLongPoll();
